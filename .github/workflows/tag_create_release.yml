@@ -35,7 +35,7 @@ jobs:
           BITRISEIO_ANDROID_KEYSTORE_ALIAS: ${{ secrets.BITRISEIO_ANDROID_KEYSTORE_ALIAS }}
           BITRISEIO_ANDROID_KEYSTORE_PRIVATE_KEY_PASSWORD: ${{ secrets.BITRISEIO_ANDROID_KEYSTORE_PRIVATE_KEY_PASSWORD }}
           BITRISEIO_ANDROID_KEYSTORE_PASSWORD: ${{ secrets.BITRISEIO_ANDROID_KEYSTORE_PASSWORD }}
-          
+
       - name: Extract Version Number
         id: version_number
         run: echo "##[set-output name=version;]$(echo ${GITHUB_REF#refs/tags/release/})"
@@ -54,7 +54,7 @@ jobs:
         id: create_release
         uses: actions/create-release@v1
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.PAT_FOR_RELEASES }}
         with:
           tag_name: ${{ steps.version_number.outputs.version }}
           release_name: Release ${{ steps.version_number.outputs.version }}
@@ -66,7 +66,7 @@ jobs:
       - name: Upload Release Asset APK
         uses: actions/upload-release-asset@v1
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.PAT_FOR_RELEASES }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: ./app/build/outputs/apk/release/app-release.apk
@@ -76,7 +76,7 @@ jobs:
       - name: Upload Release Asset AAB
         uses: actions/upload-release-asset@v1
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.PAT_FOR_RELEASES }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: ./app/build/outputs/bundle/release/app-release.aab
