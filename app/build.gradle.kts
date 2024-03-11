@@ -69,7 +69,7 @@ android {
                     .forEach { output ->
                         val timestamp = SimpleDateFormat("yyyyMMdd-HHmmss").format(Date())
                         val outputFileName =
-                            "cidemo-${variant.name}-${variant.versionName}-$timestamp.apk"
+                            "cidemo-${variant.versionName}-$timestamp-${variant.name}.apk"
                         output.outputFileName = outputFileName
                     }
             }

@@ -62,7 +62,7 @@ jobs:
 
       - name: Find APK file
         run: |
-          apk_path=$(find ./app/build/outputs/apk/release -name "cidemo-release-*-*.apk" | head -n 1)
+          apk_path=$(find ./app/build/outputs/apk/release -name "cidemo-*.apk" | head -n 1)
           echo "apk_path=$apk_path" >> $GITHUB_ENV
 
       - name: Upload Release Asset APK
@@ -77,7 +77,7 @@ jobs:
 
       - name: Find AAB file
         run: |
-          aab_path=$(find ./app/build/outputs/bundle/release -name "cidemo-release-*-*.aab" | head -n 1)
+          aab_path=$(find ./app/build/outputs/bundle/release -name "cidemo-*.aab" | head -n 1)
           echo "aab_path=$aab_path" >> $GITHUB_ENV
 
       - name: Upload Release Asset AAB
