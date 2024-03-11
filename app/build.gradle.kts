@@ -1,3 +1,9 @@
+import java.io.FileInputStream
+import java.io.InputStreamReader
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.androidApplication)
     alias(libs.plugins.jetbrainsKotlinAndroid)
@@ -7,28 +13,90 @@ android {
     namespace = "com.rwmobi.githubcidemo"
     compileSdk = 34
 
+    signingConfigs {
+        create("release") {
+            val isRunningOnCI = System.getenv("BITRISE") == "true"
+            val keystorePropertiesFile = file("../../keystore.properties")
+
+            if (isRunningOnCI || !keystorePropertiesFile.exists()) {
+                println("Signing Config: using environment variables")
+                keyAlias = System.getenv("BITRISEIO_ANDROID_KEYSTORE_ALIAS")
+                keyPassword = System.getenv("BITRISEIO_ANDROID_KEYSTORE_PRIVATE_KEY_PASSWORD")
+                storeFile = file(System.getenv("KEYSTORE_LOCATION"))
+                storePassword = System.getenv("BITRISEIO_ANDROID_KEYSTORE_PASSWORD")
+            } else {
+                println("Signing Config: using keystore properties")
+                val properties = Properties()
+                InputStreamReader(
+                    FileInputStream(keystorePropertiesFile),
+                    Charsets.UTF_8,
+                ).use { reader ->
+                    properties.load(reader)
+                }
+
+                keyAlias = properties.getProperty("alias")
+                keyPassword = properties.getProperty("pass")
+                storeFile = file(properties.getProperty("store"))
+                storePassword = properties.getProperty("storePass")
+            }
+        }
+    }
+
+    compileSdk = libs.versions.compilesdk.get().toInt()
     defaultConfig {
         applicationId = "com.rwmobi.githubcidemo"
-        minSdk = 24
-        targetSdk = 34
+        minSdk = libs.versions.minsdk.get().toInt()
+        targetSdk = libs.versions.targetsdk.get().toInt()
         versionCode = 1
         versionName = "1.0"
 
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        testInstrumentationRunner = "uk.ryanwong.catnews.app.ui.CustomTestRunner"
         vectorDrawables {
             useSupportLibrary = true
         }
+
+        // Bundle output filename
+        val timestamp = SimpleDateFormat("yyyyMMdd-HHmmss").format(Date())
+        setProperty("archivesBaseName", "cidemo-$versionName-$timestamp")
     }
 
     buildTypes {
-        release {
+        fun setOutputFileName() {
+            applicationVariants.all {
+                val variant = this
+                variant.outputs
+                    .map { it as com.android.build.gradle.internal.api.BaseVariantOutputImpl }
+                    .forEach { output ->
+                        val timestamp = SimpleDateFormat("yyyyMMdd-HHmmss").format(Date())
+                        val outputFileName =
+                            "cidemo-${variant.name}-${variant.versionName}-$timestamp.apk"
+                        output.outputFileName = outputFileName
+                    }
+            }
+        }
+
+        getByName("debug") {
+            applicationIdSuffix = ".debug"
             isMinifyEnabled = false
-            proguardFiles(
-                getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
+            isDebuggable = true
+            setOutputFileName()
+        }
+
+        getByName("release") {
+            isShrinkResources = true
+            isMinifyEnabled = true
+            isDebuggable = false
+            setProguardFiles(
+                listOf(
+                    getDefaultProguardFile("proguard-android-optimize.txt"),
+                    "proguard-rules.pro",
+                ),
             )
+            signingConfig = signingConfigs.getByName("release")
+            setOutputFileName()
         }
     }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_1_8
         targetCompatibility = JavaVersion.VERSION_1_8
