@@ -11,7 +11,6 @@ plugins {
 
 android {
     namespace = "com.rwmobi.githubcidemo"
-    compileSdk = 34
 
     signingConfigs {
         create("release") {
