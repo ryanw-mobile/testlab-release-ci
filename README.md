@@ -29,7 +29,7 @@ git tag release/1.0.0
 git push origin release/1.0.0
 ```
 
-3. The workflow will trigger automatically, building the application and creating a new release named after the tag, with the APK and AAB files attached.
+3. The workflow will be triggered automatically, building the application and creating a new release named after the tag, with the APK and AAB files attached.
 
 ## Configuration
 
