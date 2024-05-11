@@ -1,4 +1,4 @@
-# Android CI/CD Pipeline
+# Android CI/CD Pipeline Template Repository
 
 This repository contains a GitHub Actions workflow that automates the build and release process for an Android application. The workflow compiles the application, generates APK and AAB files, and creates a new GitHub release with these files attached. It is triggered by tagging a commit with a specific pattern (`release/*`).
 
@@ -29,7 +29,7 @@ git tag release/1.0.0
 git push origin release/1.0.0
 ```
 
-3. The workflow will trigger automatically, building the application and creating a new release named after the tag, with the APK and AAB files attached.
+3. The workflow will be triggered automatically, building the application and creating a new release named after the tag, with the APK and AAB files attached.
 
 ## Configuration
 
