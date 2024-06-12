@@ -18,13 +18,13 @@ android {
             val isRunningOnCI = System.getenv("CI") == "true"
             val keystorePropertiesFile = file("../../keystore.properties")
 
-            if (isRunningOnCI || !keystorePropertiesFile.exists()) {
+            if (isRunningOnCI) {
                 println("Signing Config: using environment variables")
                 keyAlias = System.getenv("CI_ANDROID_KEYSTORE_ALIAS")
                 keyPassword = System.getenv("CI_ANDROID_KEYSTORE_PRIVATE_KEY_PASSWORD")
                 storeFile = file(System.getenv("KEYSTORE_LOCATION"))
                 storePassword = System.getenv("CI_ANDROID_KEYSTORE_PASSWORD")
-            } else {
+            } else if (keystorePropertiesFile.exists()) {
                 println("Signing Config: using keystore properties")
                 val properties = Properties()
                 InputStreamReader(
@@ -38,6 +38,8 @@ android {
                 keyPassword = properties.getProperty("pass")
                 storeFile = file(properties.getProperty("store"))
                 storePassword = properties.getProperty("storePass")
+            } else {
+                println("Signing Config: skipping signing")
             }
         }
     }
