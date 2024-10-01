@@ -4,7 +4,7 @@ minsdk = "26"
 targetsdk = "34"
 compilesdk = "34"
 
-agp = "8.6.1"
+agp = "8.7.0"
 kotlin = "2.0.20"
 coreKtx = "1.13.1"
 junit = "4.13.2"
