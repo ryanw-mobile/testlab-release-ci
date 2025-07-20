@@ -193,7 +193,7 @@ private fun BaseAppModuleExtension.setupSigningAndBuildTypes() {
             // SigningConfig itself is only wired to the 'release' build type, so this guard avoids unnecessary setup.
             val isReleaseBuild =
                 gradle.startParameter.taskNames.any { it.contains("Release") || it.contains("Bundle") }
-            if (isReleaseBuild) {
+            if (isReleaseBuild || isRunningOnCI) {
                 val keystorePropertiesFile = file("../../keystore.properties")
 
                 if (isRunningOnCI || !keystorePropertiesFile.exists()) {
