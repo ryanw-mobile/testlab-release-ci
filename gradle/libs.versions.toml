@@ -1,9 +1,4 @@
 [versions]
-# App configurations, not dependencies
-minsdk = "26"
-targetsdk = "35"
-compilesdk = "35"
-
 agp = "8.11.1"
 kotlin = "2.2.0"
 coreKtx = "1.16.0"
@@ -13,6 +8,16 @@ espressoCore = "3.6.1"
 lifecycleRuntimeKtx = "2.9.2"
 activityCompose = "1.10.1"
 composeBom = "2025.07.00"
+kover = "0.9.1"
+gradle-ktlint = "13.0.0"
+detekt = "1.23.8"
+
+# App configurations, not dependencies
+minSdk = "26"
+targetSdk = "36"
+compileSdk = "36"
+versionCode = "1"
+versionName = "1.0.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -34,3 +39,6 @@ androidx-material3 = { group = "androidx.compose.material3", name = "material3" 
 androidApplication = { id = "com.android.application", version.ref = "agp" }
 jetbrainsKotlinAndroid = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+kotlinx-kover = { id = "org.jetbrains.kotlinx.kover", version.ref = "kover" }
+gradle-ktlint = { id = "org.jlleitschuh.gradle.ktlint", version.ref = "gradle-ktlint" }
+detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }

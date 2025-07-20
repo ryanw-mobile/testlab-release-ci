@@ -38,14 +38,12 @@ jobs:
         env:
           CI: 'true'
           KEYSTORE_LOCATION: ${{ steps.decode_keystore.outputs.filePath }}
-          CI_ANDROID_KEYSTORE_ALIAS: ${{ secrets.BITRISEIO_ANDROID_KEYSTORE_ALIAS }}
-          CI_ANDROID_KEYSTORE_PRIVATE_KEY_PASSWORD: ${{ secrets.BITRISEIO_ANDROID_KEYSTORE_PRIVATE_KEY_PASSWORD }}
-          CI_ANDROID_KEYSTORE_PASSWORD: ${{ secrets.BITRISEIO_ANDROID_KEYSTORE_PASSWORD }}
+          CI_ANDROID_KEYSTORE_ALIAS: ${{ secrets.CI_ANDROID_KEYSTORE_ALIAS }}
+          CI_ANDROID_KEYSTORE_PRIVATE_KEY_PASSWORD: ${{ secrets.CI_ANDROID_KEYSTORE_PRIVATE_KEY_PASSWORD }}
+          CI_ANDROID_KEYSTORE_PASSWORD: ${{ secrets.CI_ANDROID_KEYSTORE_PASSWORD }}
 
-#      - name: Upload coverage to Codecov
-#        uses: codecov/codecov-action@v4
+#      - name: Run codacy-coverage-reporter
+#        uses: codacy/codacy-coverage-reporter-action@v1.3.0
 #        with:
-#          token: ${{ secrets.CODECOV_TOKEN }}
-#          files: app/build/reports/kover/reportRelease.xml
-#          fail_ci_if_error: true
-#          verbose: false
+#          project-token: ${{ secrets.CODACY_PROJECT_TOKEN }}
+#          coverage-reports: app/build/reports/kover/reportRelease.xml

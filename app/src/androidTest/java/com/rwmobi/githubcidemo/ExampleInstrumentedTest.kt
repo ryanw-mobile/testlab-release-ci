@@ -1,12 +1,10 @@
 package com.rwmobi.githubcidemo
 
-import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.ext.junit.runners.AndroidJUnit4
-
-import org.junit.Test
+import androidx.test.platform.app.InstrumentationRegistry
 import org.junit.runner.RunWith
-
-import org.junit.Assert.*
+import kotlin.test.Test
+import kotlin.test.assertEquals
 
 /**
  * Instrumented test, which will execute on an Android device.

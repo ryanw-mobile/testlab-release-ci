@@ -4,7 +4,7 @@ This repository contains a GitHub Actions workflow that automates the build and 
 
 ## Workflow Overview
 
-The `.github/workflows/android-build-and-release.yml` file defines the CI/CD pipeline. It performs the following actions:
+The `.github/workflows/tag_create_release.yml` file defines the CI/CD pipeline. It performs the following actions:
 
 1. Checks out the code.
 2. Sets up the JDK environment.
@@ -33,7 +33,7 @@ git push origin release/1.0.0
 
 ## Configuration
 
-You may need to adjust the `android-build-and-release.yml` workflow file to match your project's specific requirements, such as changing the JDK version or modifying the Gradle build tasks.
+You may need to adjust the `tag_create_release.yml` workflow file to match your project's specific requirements, such as changing the JDK version or modifying the Gradle build tasks.
 
 ## Personal Access Token (PAT)
 
