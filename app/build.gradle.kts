@@ -16,10 +16,11 @@ plugins {
 
 // Configuration
 val productApkName = "cidemo"
+val productNamespace = "com.rwmobi.githubcidemo"
 val isRunningOnCI = System.getenv("CI") == "true"
 
 android {
-    namespace = "com.rwmobi.githubcidemo"
+    namespace = productNamespace
 
     setupSdkVersionsFromVersionCatalog()
     setupSigningAndBuildTypes()
@@ -83,41 +84,48 @@ tasks {
     getByPath("preBuild").dependsOn("ktlintFormat")
 }
 
+configure<org.jlleitschuh.gradle.ktlint.KtlintExtension> {
+    android = true
+    ignoreFailures = isRunningOnCI
+    reporters {
+        reporter(org.jlleitschuh.gradle.ktlint.reporter.ReporterType.PLAIN)
+        reporter(org.jlleitschuh.gradle.ktlint.reporter.ReporterType.CHECKSTYLE)
+        reporter(org.jlleitschuh.gradle.ktlint.reporter.ReporterType.SARIF)
+    }
+}
+
 detekt { parallel = true }
 
 kover {
     useJacoco()
     reports.filters.excludes {
         packages(
-            "com.rwmobi.tmoney.ui.*",
-            "com.rwmobi.tmoney.di*",
-            "com.rwmobi.tmoney.data.repository.demodata*",
+            "$productNamespace.ui.*",
+            "$productNamespace.di*",
+            "$productNamespace.data.repository.demodata*",
         )
 
         classes(
             "dagger.hilt.internal.aggregatedroot.codegen.*",
             "hilt_aggregated_deps.*",
-            "com.rwmobi.tmoney.*.Hilt_*",
-            "com.rwmobi.tmoney.*.*_Factory*",
-            "com.rwmobi.tmoney.*.*_HiltModules*",
-            "com.rwmobi.tmoney.*.*Module_*",
-            "com.rwmobi.tmoney.*.*MembersInjector*",
-            "com.rwmobi.tmoney.*.*_Impl*",
-            "com.rwmobi.tmoney.ComposableSingletons*",
-            "com.rwmobi.tmoney.BuildConfig*",
-            "com.rwmobi.tmoney.*.Fake*",
-            "com.rwmobi.tmoney.*.previewparameter*",
-            "com.rwmobi.tmoney.app.ComposableSingletons*",
-
+            "$productNamespace.*.Hilt_*",
+            "$productNamespace.*.*_Factory*",
+            "$productNamespace.*.*_HiltModules*",
+            "$productNamespace.*.*Module_*",
+            "$productNamespace.*.*MembersInjector*",
+            "$productNamespace.*.*_Impl*",
+            "$productNamespace.ComposableSingletons*",
+            "$productNamespace.BuildConfig*",
+            "$productNamespace.*.Fake*",
+            "$productNamespace.*.previewparameter*",
+            "$productNamespace.app.ComposableSingletons*",
+            "$productNamespace.Application*",
             "*Fragment",
             "*Fragment\$*",
             "*Activity",
             "*Activity\$*",
             "*.databinding.*",
             "*.BuildConfig",
-            "com.rwmobi.tmoney.TMoneyApplication*",
-
-            // excludes debug classes
             "*.DebugUtil",
         )
     }
@@ -125,11 +133,23 @@ kover {
 
 // Gradle Build Utilities
 private fun BaseAppModuleExtension.setupSdkVersionsFromVersionCatalog() {
-    compileSdk = libs.versions.compileSdk.get().toInt()
+    compileSdk =
+        libs.versions.compileSdk
+            .get()
+            .toInt()
     defaultConfig {
-        minSdk = libs.versions.minSdk.get().toInt()
-        targetSdk = libs.versions.targetSdk.get().toInt()
-        versionCode = libs.versions.versionCode.get().toInt()
+        minSdk =
+            libs.versions.minSdk
+                .get()
+                .toInt()
+        targetSdk =
+            libs.versions.targetSdk
+                .get()
+                .toInt()
+        versionCode =
+            libs.versions.versionCode
+                .get()
+                .toInt()
         versionName = libs.versions.versionName.get()
     }
 }
@@ -247,9 +267,10 @@ private fun TaskContainerScope.copyBaselineProfileAfterBuild() {
     afterEvaluate {
         named("generateReleaseBaselineProfile") {
             doLast {
-                val outputFile = File(
-                    "$projectDir/src/release/generated/baselineProfiles/baseline-prof.txt",
-                )
+                val outputFile =
+                    File(
+                        "$projectDir/src/release/generated/baselineProfiles/baseline-prof.txt",
+                    )
                 val destinationDir = File("$projectDir/src/main")
                 destinationDir.mkdirs()
                 val destinationFile = File(destinationDir, outputFile.name)

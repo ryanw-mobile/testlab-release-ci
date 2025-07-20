@@ -30,11 +30,13 @@ class MainActivity : ComponentActivity() {
                 // Pre Android 15 will see tinted navigation bar
                 // BUT status bar is not affected
                 Surface(
-                    modifier = Modifier
+                    modifier =
+                    Modifier
                         .background(color = Color.Red) // for system bar area
                         .fillMaxSize()
                         .safeDrawingPadding()
-                        .background(color = MaterialTheme.colorScheme.background), // for actual content background
+                        .background(color = MaterialTheme.colorScheme.background),
+                    // for actual content background
                 ) {
                     Greeting("Android")
                 }
@@ -44,10 +46,13 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
+fun Greeting(
+    name: String,
+    modifier: Modifier = Modifier,
+) {
     Text(
         text = "Hello $name!",
-        modifier = modifier
+        modifier = modifier,
     )
 }
 
