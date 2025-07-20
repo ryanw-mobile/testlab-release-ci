@@ -1,3 +1,4 @@
+import com.android.build.gradle.internal.dsl.BaseAppModuleExtension
 import java.io.FileInputStream
 import java.io.InputStreamReader
 import java.text.SimpleDateFormat
@@ -8,94 +9,40 @@ plugins {
     alias(libs.plugins.androidApplication)
     alias(libs.plugins.jetbrainsKotlinAndroid)
     alias(libs.plugins.compose.compiler)
+    alias(libs.plugins.kotlinx.kover)
+    alias(libs.plugins.gradle.ktlint)
+    alias(libs.plugins.detekt)
 }
+
+// Configuration
+val productApkName = "cidemo"
+val isRunningOnCI = System.getenv("CI") == "true"
 
 android {
     namespace = "com.rwmobi.githubcidemo"
 
-    signingConfigs {
-        create("release") {
-            val isRunningOnCI = System.getenv("CI") == "true"
-            val keystorePropertiesFile = file("../../keystore.properties")
+    setupSdkVersionsFromVersionCatalog()
+    setupSigningAndBuildTypes()
+    setupPackagingResourcesDeduplication()
 
-            if (isRunningOnCI) {
-                println("Signing Config: using environment variables")
-                keyAlias = System.getenv("CI_ANDROID_KEYSTORE_ALIAS")
-                keyPassword = System.getenv("CI_ANDROID_KEYSTORE_PRIVATE_KEY_PASSWORD")
-                storeFile = file(System.getenv("KEYSTORE_LOCATION"))
-                storePassword = System.getenv("CI_ANDROID_KEYSTORE_PASSWORD")
-            } else if (keystorePropertiesFile.exists()) {
-                println("Signing Config: using keystore properties")
-                val properties = Properties()
-                InputStreamReader(
-                    FileInputStream(keystorePropertiesFile),
-                    Charsets.UTF_8,
-                ).use { reader ->
-                    properties.load(reader)
-                }
-
-                keyAlias = properties.getProperty("alias")
-                keyPassword = properties.getProperty("pass")
-                storeFile = file(properties.getProperty("store"))
-                storePassword = properties.getProperty("storePass")
-            } else {
-                println("Signing Config: skipping signing")
-            }
-        }
-    }
-
-    compileSdk = libs.versions.compilesdk.get().toInt()
     defaultConfig {
         applicationId = "com.rwmobi.githubcidemo"
-        minSdk = libs.versions.minsdk.get().toInt()
-        targetSdk = libs.versions.targetsdk.get().toInt()
-        versionCode = 1
-        versionName = "1.0"
 
         testInstrumentationRunner = "uk.ryanwong.catnews.app.ui.CustomTestRunner"
-        vectorDrawables {
-            useSupportLibrary = true
-        }
-
-        // Bundle output filename
-        val timestamp = SimpleDateFormat("yyyyMMdd-HHmmss").format(Date())
-        setProperty("archivesBaseName", "cidemo-$versionName-$timestamp")
+        vectorDrawables { useSupportLibrary = true }
     }
 
-    buildTypes {
-        fun setOutputFileName() {
-            applicationVariants.all {
-                val variant = this
-                variant.outputs
-                    .map { it as com.android.build.gradle.internal.api.BaseVariantOutputImpl }
-                    .forEach { output ->
-                        val timestamp = SimpleDateFormat("yyyyMMdd-HHmmss").format(Date())
-                        val outputFileName =
-                            "cidemo-${variant.versionName}-$timestamp-${variant.name}.apk"
-                        output.outputFileName = outputFileName
-                    }
-            }
-        }
+    buildFeatures {
+        compose = true
+        buildConfig = true
+    }
 
-        getByName("debug") {
-            applicationIdSuffix = ".debug"
-            isMinifyEnabled = false
-            isDebuggable = true
-            setOutputFileName()
-        }
+    testOptions {
+        animationsDisabled = true
 
-        getByName("release") {
-            isShrinkResources = true
-            isMinifyEnabled = true
-            isDebuggable = false
-            setProguardFiles(
-                listOf(
-                    getDefaultProguardFile("proguard-android-optimize.txt"),
-                    "proguard-rules.pro",
-                ),
-            )
-            signingConfig = signingConfigs.getByName("release")
-            setOutputFileName()
+        unitTests {
+            isIncludeAndroidResources = true
+            isReturnDefaultValues = true
         }
     }
 
@@ -103,21 +50,17 @@ android {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
-    kotlinOptions {
-        jvmTarget = "17"
+}
+
+kotlin {
+    compilerOptions {
+        optIn.add("kotlin.time.ExperimentalTime")
+        freeCompilerArgs.add("-Xannotation-default-target=param-property")
     }
-    buildFeatures {
-        compose = true
-    }
-    packaging {
-        resources {
-            excludes += "/META-INF/{AL2.0,LGPL2.1}"
-        }
-    }
+    jvmToolchain(17)
 }
 
 dependencies {
-
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
@@ -133,4 +76,186 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
+}
+
+tasks {
+    // copyBaselineProfileAfterBuild()
+    getByPath("preBuild").dependsOn("ktlintFormat")
+}
+
+detekt { parallel = true }
+
+kover {
+    useJacoco()
+    reports.filters.excludes {
+        packages(
+            "com.rwmobi.tmoney.ui.*",
+            "com.rwmobi.tmoney.di*",
+            "com.rwmobi.tmoney.data.repository.demodata*",
+        )
+
+        classes(
+            "dagger.hilt.internal.aggregatedroot.codegen.*",
+            "hilt_aggregated_deps.*",
+            "com.rwmobi.tmoney.*.Hilt_*",
+            "com.rwmobi.tmoney.*.*_Factory*",
+            "com.rwmobi.tmoney.*.*_HiltModules*",
+            "com.rwmobi.tmoney.*.*Module_*",
+            "com.rwmobi.tmoney.*.*MembersInjector*",
+            "com.rwmobi.tmoney.*.*_Impl*",
+            "com.rwmobi.tmoney.ComposableSingletons*",
+            "com.rwmobi.tmoney.BuildConfig*",
+            "com.rwmobi.tmoney.*.Fake*",
+            "com.rwmobi.tmoney.*.previewparameter*",
+            "com.rwmobi.tmoney.app.ComposableSingletons*",
+
+            "*Fragment",
+            "*Fragment\$*",
+            "*Activity",
+            "*Activity\$*",
+            "*.databinding.*",
+            "*.BuildConfig",
+            "com.rwmobi.tmoney.TMoneyApplication*",
+
+            // excludes debug classes
+            "*.DebugUtil",
+        )
+    }
+}
+
+// Gradle Build Utilities
+private fun BaseAppModuleExtension.setupSdkVersionsFromVersionCatalog() {
+    compileSdk = libs.versions.compileSdk.get().toInt()
+    defaultConfig {
+        minSdk = libs.versions.minSdk.get().toInt()
+        targetSdk = libs.versions.targetSdk.get().toInt()
+        versionCode = libs.versions.versionCode.get().toInt()
+        versionName = libs.versions.versionName.get()
+    }
+}
+
+private fun BaseAppModuleExtension.setupPackagingResourcesDeduplication() {
+    packaging.resources {
+        excludes.addAll(
+            listOf(
+                "META-INF/*.md",
+                "META-INF/proguard/*",
+                "META-INF/*.kotlin_module",
+                "META-INF/DEPENDENCIES",
+                "META-INF/LICENSE",
+                "META-INF/LICENSE.*",
+                "META-INF/LICENSE-notice.txt",
+                "META-INF/NOTICE",
+                "META-INF/NOTICE.*",
+                "META-INF/AL2.0",
+                "META-INF/LGPL2.1",
+                "META-INF/*.properties",
+                "/*.properties",
+            ),
+        )
+    }
+}
+
+private fun BaseAppModuleExtension.setupSigningAndBuildTypes() {
+    val timestamp = SimpleDateFormat("yyyyMMdd-HHmmss").format(Date())
+
+    signingConfigs {
+        create("releaseSigningConfig") {
+            // Only initialise the signing config when a Release or Bundle task is being executed.
+            // This prevents Gradle sync or debug builds from attempting to load the keystore,
+            // which could fail if the keystore or environment variables are not available.
+            // SigningConfig itself is only wired to the 'release' build type, so this guard avoids unnecessary setup.
+            val isReleaseBuild =
+                gradle.startParameter.taskNames.any { it.contains("Release") || it.contains("Bundle") }
+            if (isReleaseBuild) {
+                val keystorePropertiesFile = file("../../keystore.properties")
+
+                if (isRunningOnCI || !keystorePropertiesFile.exists()) {
+                    println("Signing Config: using environment variables")
+                    keyAlias = System.getenv("CI_ANDROID_KEYSTORE_ALIAS")
+                    keyPassword = System.getenv("CI_ANDROID_KEYSTORE_PRIVATE_KEY_PASSWORD")
+                    storeFile = file(System.getenv("KEYSTORE_LOCATION"))
+                    storePassword = System.getenv("CI_ANDROID_KEYSTORE_PASSWORD")
+                } else {
+                    println("Signing Config: using keystore properties")
+                    val properties = Properties()
+                    InputStreamReader(
+                        FileInputStream(keystorePropertiesFile),
+                        Charsets.UTF_8,
+                    ).use { reader ->
+                        properties.load(reader)
+                    }
+
+                    keyAlias = properties.getProperty("alias")
+                    keyPassword = properties.getProperty("pass")
+                    storeFile = file(properties.getProperty("store"))
+                    storePassword = properties.getProperty("storePass")
+                }
+            }
+        }
+    }
+
+    defaultConfig {
+        // Bundle output filename
+        setProperty("archivesBaseName", "$productApkName-$versionName-$timestamp")
+    }
+
+    buildTypes {
+        fun setOutputFileName() {
+            applicationVariants.all {
+                outputs
+                    .map { it as com.android.build.gradle.internal.api.BaseVariantOutputImpl }
+                    .forEach { output ->
+                        val outputFileName = "$productApkName-$name-$versionName-$timestamp.apk"
+                        output.outputFileName = outputFileName
+                    }
+            }
+        }
+
+        getByName("debug") {
+            applicationIdSuffix = ".debug"
+            isMinifyEnabled = false
+            isDebuggable = true
+            setOutputFileName()
+        }
+
+        create("demo") {
+            matchingFallbacks += listOf("debug")
+            applicationIdSuffix = ".demo"
+            isMinifyEnabled = false
+            isDebuggable = true
+            setOutputFileName()
+        }
+
+        getByName("release") {
+            isShrinkResources = true
+            isMinifyEnabled = true
+            isDebuggable = false
+            setProguardFiles(
+                listOf(
+                    getDefaultProguardFile("proguard-android-optimize.txt"),
+                    "proguard-rules.pro",
+                ),
+            )
+            signingConfig = signingConfigs.getByName("releaseSigningConfig")
+            setOutputFileName()
+        }
+    }
+}
+
+private fun TaskContainerScope.copyBaselineProfileAfterBuild() {
+    afterEvaluate {
+        named("generateReleaseBaselineProfile") {
+            doLast {
+                val outputFile = File(
+                    "$projectDir/src/release/generated/baselineProfiles/baseline-prof.txt",
+                )
+                val destinationDir = File("$projectDir/src/main")
+                destinationDir.mkdirs()
+                val destinationFile = File(destinationDir, outputFile.name)
+                println("Moving file $outputFile to $destinationDir")
+                outputFile.renameTo(destinationFile)
+            }
+        }
+    }
 }
