@@ -31,10 +31,10 @@ class MainActivity : ComponentActivity() {
                 // BUT status bar is not affected
                 Surface(
                     modifier = Modifier
-                        .background(color = Color.Red)
+                        .background(color = Color.Red) // for system bar area
                         .fillMaxSize()
-                        .safeDrawingPadding(),
-                    color = MaterialTheme.colorScheme.background
+                        .safeDrawingPadding()
+                        .background(color = MaterialTheme.colorScheme.background), // for actual content background
                 ) {
                     Greeting("Android")
                 }
