@@ -217,6 +217,8 @@ private fun BaseAppModuleExtension.setupSigningAndBuildTypes() {
                     storeFile = file(properties.getProperty("store"))
                     storePassword = properties.getProperty("storePass")
                 }
+            } else {
+                println("Signing Config not created for non-release builds.")
             }
         }
     }
