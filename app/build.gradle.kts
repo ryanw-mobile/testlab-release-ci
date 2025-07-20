@@ -1,3 +1,4 @@
+import com.android.build.api.dsl.ManagedVirtualDevice
 import com.android.build.gradle.internal.dsl.BaseAppModuleExtension
 import java.io.FileInputStream
 import java.io.InputStreamReader
@@ -29,7 +30,7 @@ android {
     defaultConfig {
         applicationId = "com.rwmobi.githubcidemo"
 
-        testInstrumentationRunner = "uk.ryanwong.catnews.app.ui.CustomTestRunner"
+//        testInstrumentationRunner = "$productNamespace.ui.CustomTestRunner"
         vectorDrawables { useSupportLibrary = true }
     }
 
@@ -44,6 +45,16 @@ android {
         unitTests {
             isIncludeAndroidResources = true
             isReturnDefaultValues = true
+        }
+
+        managedDevices {
+            allDevices {
+                create<ManagedVirtualDevice>("pixel2Api34") {
+                    device = "Pixel 2"
+                    apiLevel = 34
+                    systemImageSource = "aosp-atd"
+                }
+            }
         }
     }
 
@@ -70,7 +81,14 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
+
+    testImplementation(kotlin("test"))
+    testImplementation(kotlin("test-common"))
+    testImplementation(kotlin("test-annotations-common"))
     testImplementation(libs.junit)
+    androidTestImplementation(kotlin("test"))
+    androidTestImplementation(kotlin("test-common"))
+    androidTestImplementation(kotlin("test-annotations-common"))
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))
@@ -133,23 +151,11 @@ kover {
 
 // Gradle Build Utilities
 private fun BaseAppModuleExtension.setupSdkVersionsFromVersionCatalog() {
-    compileSdk =
-        libs.versions.compileSdk
-            .get()
-            .toInt()
+    compileSdk = libs.versions.compileSdk.get().toInt()
     defaultConfig {
-        minSdk =
-            libs.versions.minSdk
-                .get()
-                .toInt()
-        targetSdk =
-            libs.versions.targetSdk
-                .get()
-                .toInt()
-        versionCode =
-            libs.versions.versionCode
-                .get()
-                .toInt()
+        minSdk = libs.versions.minSdk.get().toInt()
+        targetSdk = libs.versions.targetSdk.get().toInt()
+        versionCode = libs.versions.versionCode.get().toInt()
         versionName = libs.versions.versionName.get()
     }
 }
