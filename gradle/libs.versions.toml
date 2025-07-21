@@ -9,7 +9,7 @@ lifecycleRuntimeKtx = "2.9.2"
 activityCompose = "1.10.1"
 composeBom = "2025.07.00"
 kover = "0.9.1"
-gradle-ktlint = "13.0.0"
+kotlinter = "5.1.1"
 detekt = "1.23.8"
 
 # App configurations, not dependencies
@@ -40,5 +40,5 @@ androidApplication = { id = "com.android.application", version.ref = "agp" }
 jetbrainsKotlinAndroid = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 kotlinx-kover = { id = "org.jetbrains.kotlinx.kover", version.ref = "kover" }
-gradle-ktlint = { id = "org.jlleitschuh.gradle.ktlint", version.ref = "gradle-ktlint" }
 detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }
+kotlinter = { id = "org.jmailen.kotlinter", version.ref = "kotlinter" }
