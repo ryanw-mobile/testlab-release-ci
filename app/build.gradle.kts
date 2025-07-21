@@ -11,8 +11,8 @@ plugins {
     alias(libs.plugins.jetbrainsKotlinAndroid)
     alias(libs.plugins.compose.compiler)
     alias(libs.plugins.kotlinx.kover)
-    alias(libs.plugins.gradle.ktlint)
     alias(libs.plugins.detekt)
+    alias(libs.plugins.kotlinter)
 }
 
 // Configuration
@@ -99,17 +99,8 @@ dependencies {
 
 tasks {
     // copyBaselineProfileAfterBuild()
-    getByPath("preBuild").dependsOn("ktlintFormat")
-}
-
-configure<org.jlleitschuh.gradle.ktlint.KtlintExtension> {
-    android = true
-    ignoreFailures = isRunningOnCI
-    reporters {
-        reporter(org.jlleitschuh.gradle.ktlint.reporter.ReporterType.PLAIN)
-        reporter(org.jlleitschuh.gradle.ktlint.reporter.ReporterType.CHECKSTYLE)
-        reporter(org.jlleitschuh.gradle.ktlint.reporter.ReporterType.SARIF)
-    }
+    check { dependsOn("detekt") }
+    preBuild { dependsOn("formatKotlin") }
 }
 
 detekt { parallel = true }
