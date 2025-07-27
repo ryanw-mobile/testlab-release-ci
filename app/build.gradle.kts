@@ -51,7 +51,7 @@ android {
             allDevices {
                 create<ManagedVirtualDevice>("pixel2Api34") {
                     device = "Pixel 2"
-                    apiLevel = 34
+                    apiLevel = 35
                     systemImageSource = "aosp-atd"
                     testedAbi = "arm64-v8a" // better performance on CI and Macs
                 }
