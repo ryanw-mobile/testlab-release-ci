@@ -175,8 +175,6 @@ private fun BaseAppModuleExtension.setupPackagingResourcesDeduplication() {
 }
 
 private fun BaseAppModuleExtension.setupSigningAndBuildTypes() {
-    val timestamp = SimpleDateFormat("yyyyMMdd-HHmmss").format(Date())
-
     signingConfigs {
         create("releaseSigningConfig") {
             // Only initialise the signing config when a Release or Bundle task is being executed.
@@ -184,18 +182,23 @@ private fun BaseAppModuleExtension.setupSigningAndBuildTypes() {
             // which could fail if the keystore or environment variables are not available.
             // SigningConfig itself is only wired to the 'release' build type, so this guard avoids unnecessary setup.
             val isReleaseBuild =
-                gradle.startParameter.taskNames.any { it.contains("Release") || it.contains("Bundle") }
+                gradle.startParameter.taskNames.any {
+                    it.contains("Release", ignoreCase = true) ||
+                            it.contains("Bundle", ignoreCase = true) ||
+                            it.equals("build", ignoreCase = true)
+                }
+
             if (isReleaseBuild || isRunningOnCI) {
                 val keystorePropertiesFile = file("../../keystore.properties")
 
                 if (isRunningOnCI || !keystorePropertiesFile.exists()) {
-                    println("Signing Config: using environment variables")
+                    println("⚠\uFE0F Signing Config: using environment variables")
                     keyAlias = System.getenv("CI_ANDROID_KEYSTORE_ALIAS")
                     keyPassword = System.getenv("CI_ANDROID_KEYSTORE_PRIVATE_KEY_PASSWORD")
                     storeFile = file(System.getenv("KEYSTORE_LOCATION"))
                     storePassword = System.getenv("CI_ANDROID_KEYSTORE_PASSWORD")
                 } else {
-                    println("Signing Config: using keystore properties")
+                    println("⚠\uFE0F Signing Config: using keystore properties")
                     val properties = Properties()
                     InputStreamReader(
                         FileInputStream(keystorePropertiesFile),
@@ -210,14 +213,16 @@ private fun BaseAppModuleExtension.setupSigningAndBuildTypes() {
                     storePassword = properties.getProperty("storePass")
                 }
             } else {
-                println("Signing Config not created for non-release builds.")
+                println("⚠\uFE0F Warning: Signing Config not created for non-release builds.")
             }
         }
     }
 
-    defaultConfig {
+    val timestamp = SimpleDateFormat("yyyyMMdd‑HHmmss").format(Date())
+    val baseName = "$productApkName‑${libs.versions.versionName.get()}‑$timestamp"
+    tasks.withType<AbstractArchiveTask>().configureEach {
         // Bundle output filename
-        setProperty("archivesBaseName", "$productApkName-$versionName-$timestamp")
+        archiveBaseName.set(baseName)
     }
 
     buildTypes {
