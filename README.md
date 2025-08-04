@@ -1,47 +1,108 @@
 # Android CI/CD Pipeline Template Repository <br/>[![Renovate enabled](https://img.shields.io/badge/renovate-enabled-brightgreen.svg)](https://renovatebot.com/)
 
-This repository contains a GitHub Actions workflow that automates the build and release process for an Android application. The workflow compiles the application, generates APK and AAB files, and creates a new GitHub release with these files attached. It is triggered by tagging a commit with a specific pattern (`release/*`).
+This repository provides a template setup for Android apps with a fully working GitHub Actions workflow for CI/CD. It builds both APK and AAB outputs, and can optionally sign and release them via GitHub Releases.
+
+## How to Build
+
+### Without Keystore (Debug Builds)
+
+By default, debug builds do not require a keystore. You can run:
+
+```bash
+./gradlew assembleDebug
+```
+
+or build the debug AAB:
+
+```bash
+./gradlew bundleDebug
+```
+
+No signing config is required unless you explicitly build a release variant.
+
+### With Keystore (Release Builds)
+
+Signing configuration is only triggered when:
+- the task includes "Release" or "Bundle"
+- or the environment variable `CI=true` is set
+
+There are two ways to supply the keystore:
+
+#### 1. Environment Variables (For CI)
+
+Provide the following environment variables (e.g. in GitHub Secrets):
+
+```
+KEYSTORE_LOCATION=./keystore.jks
+CI_ANDROID_KEYSTORE_ALIAS=yourAlias
+CI_ANDROID_KEYSTORE_PASSWORD=yourKeystorePassword
+CI_ANDROID_KEYSTORE_PRIVATE_KEY_PASSWORD=yourPrivateKeyPassword
+```
+
+#### 2. `keystore.properties` File (For Local Builds)
+
+Create a `keystore.properties` file at the root:
+
+```properties
+alias=yourAlias
+pass=yourPrivateKeyPassword
+store=path/to/keystore.jks
+storePass=yourKeystorePassword
+```
+
+Then build:
+
+```bash
+./gradlew bundleRelease
+```
+
+### Output Format
+
+Release builds are timestamped using the format:
+
+```
+<app-name>-<buildType>-<versionName>-<yyyyMMdd-HHmmss>.apk
+```
+
+This applies to both APK and AAB artifacts.
 
 ## Workflow Overview
 
-The `.github/workflows/tag_create_release.yml` file defines the CI/CD pipeline. It performs the following actions:
+The `.github/workflows/tag_create_release.yml` file defines the CI/CD pipeline. It performs the following:
 
 1. Checks out the code.
-2. Sets up the JDK environment.
-3. Builds the APK and AAB files using Gradle.
-4. Creates a GitHub release.
-5. Attaches the APK and AAB files to the GitHub release.
+2. Sets up JDK 21.
+3. Builds the APK and AAB using Gradle.
+4. Creates a GitHub Release.
+5. Uploads the outputs as release assets.
 
-## Prerequisites
+Trigger the workflow by tagging a commit with the format: `release/*`, e.g. `release/1.2.3`.
 
-- Android Studio project set up with Gradle.
-- JDK 21 configured in the project.
-- A `release` branch or appropriate branch strategy to initiate the release process.
+### Usage
 
-## Usage
+To trigger the CI pipeline:
 
-To trigger the workflow and create a new release:
-
-1. Ensure your changes are merged into the `main` or `release` branch (as per your project's branching strategy).
-2. Tag the commit you want to release with a `release/*` pattern, e.g., `release/1.0.0`.
-```
+```bash
 git tag release/1.0.0
 git push origin release/1.0.0
 ```
 
-3. The workflow will be triggered automatically, building the application and creating a new release named after the tag, with the APK and AAB files attached.
+GitHub Actions will build the release and publish it with assets.
 
-## Configuration
+### Configuration Summary
 
-You may need to adjust the `tag_create_release.yml` workflow file to match your project's specific requirements, such as changing the JDK version or modifying the Gradle build tasks.
+- JDK 21 and Kotlin configured via toolchain
+- Code style enforced via Detekt, Kover, and Kotlinter
+- Compose support with BOM and previews
+- Managed device test runner for CI
 
-## Personal Access Token (PAT)
+### Personal Access Token (PAT)
 
-This workflow uses a Personal Access Token (PAT) with `repo` scope for creating releases. Store your PAT in the repository's secrets with the name `PAT_FOR_RELEASES`.
+The workflow uses a GitHub token with `repo` scope to publish releases. Store it as a repository secret:
 
-## Contributing
-
-Contributions to this project are welcome! Please fork the repository, make your changes, and submit a pull request.
+```
+PAT_FOR_RELEASES
+```
 
 ## License
 
