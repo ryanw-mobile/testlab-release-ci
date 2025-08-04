@@ -243,14 +243,6 @@ private fun BaseAppModuleExtension.setupSigningAndBuildTypes() {
             setOutputFileName()
         }
 
-        create("demo") {
-            matchingFallbacks += listOf("debug")
-            applicationIdSuffix = ".demo"
-            isMinifyEnabled = false
-            isDebuggable = true
-            setOutputFileName()
-        }
-
         getByName("release") {
             isShrinkResources = true
             isMinifyEnabled = true
