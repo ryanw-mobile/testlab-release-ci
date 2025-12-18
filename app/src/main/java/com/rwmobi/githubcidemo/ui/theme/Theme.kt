@@ -53,6 +53,7 @@ fun GithubCIDemoTheme(
             }
 
             darkTheme -> DarkColorScheme
+
             else -> LightColorScheme
         }
 
