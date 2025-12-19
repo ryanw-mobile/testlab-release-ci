@@ -46,3 +46,12 @@ jobs:
 
       - name: Assemble debug
         run: ./gradlew assembleDebug
+
+      - name: Upload test reports
+        if: failure()
+        uses: actions/upload-artifact@v6
+        with:
+          name: test-reports
+          path: |
+            **/build/reports/tests/**
+            **/build/reports/androidTests/**
