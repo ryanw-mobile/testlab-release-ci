@@ -28,7 +28,7 @@ android {
     setupPackagingResourcesDeduplication()
 
     defaultConfig {
-        applicationId = "com.rwmobi.githubcidemo"
+        applicationId = productNamespace
 
 //        testInstrumentationRunner = "$productNamespace.ui.CustomTestRunner"
         vectorDrawables { useSupportLibrary = true }
@@ -174,13 +174,18 @@ private fun BaseAppModuleExtension.setupPackagingResourcesDeduplication() {
 }
 
 private fun BaseAppModuleExtension.setupSigningAndBuildTypes() {
+    val isReleaseSigningEnabled =
+        providers.gradleProperty("releaseSigning")
+            .map { it.toBoolean() }
+            .orElse(false)
+            .get()
+
     val releaseSigningConfigName = "releaseSigningConfig"
     val timestamp = SimpleDateFormat("yyyyMMdd-HHmmss").format(Date())
     val baseName = "$productApkName-${libs.versions.versionName.get()}-$timestamp"
     val isReleaseBuild = gradle.startParameter.taskNames.any {
-        it.contains("Release", ignoreCase = true)
-                || it.contains("Bundle", ignoreCase = true)
-                || it.equals("build", ignoreCase = true)
+        it.contains("Release", ignoreCase = true) ||
+            it.contains("Bundle", ignoreCase = true)
     }
 
     extensions.configure<BasePluginExtension> { archivesName.set(baseName) }
@@ -190,7 +195,7 @@ private fun BaseAppModuleExtension.setupSigningAndBuildTypes() {
         // This prevents Gradle sync or debug builds from attempting to load the keystore,
         // which could fail if the keystore or environment variables are not available.
         // SigningConfig itself is only wired to the 'release' build type, so this guard avoids unnecessary setup.
-        if (isReleaseBuild) {
+        if (isReleaseBuild && isReleaseSigningEnabled) {
             val keystorePropertiesFile = file("../../keystore.properties")
 
             if (isRunningOnCI || !keystorePropertiesFile.exists()) {
@@ -215,7 +220,7 @@ private fun BaseAppModuleExtension.setupSigningAndBuildTypes() {
                 storePassword = properties.getProperty("storePass")
             }
         } else {
-            println("⚠\uFE0F Signing Config: not created for non-release builds.")
+            println("⚠️ Signing Config: skipped (no release signing intent)")
         }
     }
 
@@ -248,7 +253,9 @@ private fun BaseAppModuleExtension.setupSigningAndBuildTypes() {
                     "proguard-rules.pro",
                 ),
             )
-            signingConfig = signingConfigs.getByName(name = releaseSigningConfigName)
+            if (isReleaseSigningEnabled) {
+                signingConfig = signingConfigs.getByName(name = releaseSigningConfigName)
+            }
             setOutputFileName()
         }
     }

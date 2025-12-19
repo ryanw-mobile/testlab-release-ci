@@ -22,13 +22,26 @@ No signing config is required unless you explicitly build a release variant.
 
 ### With Keystore (Release Builds)
 
-Signing configuration is only triggered when:
-- the task includes "Release" or "Bundle"
-- or the environment variable `CI=true` is set
+Signing is intentionally **disabled by default**, even for release builds.
+
+A release build (including R8, shrinking, and obfuscation) can be run **without signing**:
+
+```bash
+./gradlew assembleRelease
+```
+
+Signing is only enabled when you explicitly opt in using a Gradle property:
+
+```bash
+./gradlew assembleRelease -PreleaseSigning=true
+```
 
 There are two ways to supply the keystore:
 
 #### 1. Environment Variables (For CI)
+
+Note: Providing keystore environment variables alone does **not** enable signing.
+Signing must be explicitly enabled via `-PreleaseSigning=true`.
 
 Provide the following environment variables (e.g. in GitHub Secrets):
 
@@ -53,7 +66,7 @@ storePass=yourKeystorePassword
 Then build:
 
 ```bash
-./gradlew bundleRelease
+./gradlew bundleRelease -PreleaseSigning=true
 ```
 
 ### Output Format
@@ -66,15 +79,16 @@ Release builds are timestamped using the format:
 
 This applies to both APK and AAB artifacts.
 
+Because outputs include a timestamp, CI workflows must locate APK/AAB files dynamically (for example, using `find`), rather than assuming fixed filenames.
+
 ## Workflow Overview
 
-The `.github/workflows/tag_create_release.yml` file defines the CI/CD pipeline. It performs the following:
+This repository uses multiple GitHub Actions workflows with distinct responsibilities:
 
-1. Checks out the code.
-2. Sets up JDK 21.
-3. Builds the APK and AAB using Gradle.
-4. Creates a GitHub Release.
-5. Uploads the outputs as release assets.
+- `pr_check.yml`: runs lint and unit tests for human-authored pull requests.
+- `renovate_pr.yml`: runs lint, unit tests, and emulator tests for Renovate dependency updates.
+- `main_build.yml`: performs a release build preflight (R8 enabled, no signing) after merges to `main`.
+- `tag_create_release.yml`: performs signed release builds and publishes APK/AAB artifacts to GitHub Releases.
 
 Trigger the workflow by tagging a commit with the format: `release/*`, e.g. `release/1.2.3`.
 
