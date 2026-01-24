@@ -89,6 +89,7 @@ dependencies {
     androidTestImplementation(kotlin("test"))
     androidTestImplementation(kotlin("test-common"))
     androidTestImplementation(kotlin("test-annotations-common"))
+    androidTestImplementation(libs.kotlin.test.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))
