@@ -1,5 +1,5 @@
+import com.android.build.api.dsl.ApplicationExtension
 import com.android.build.api.dsl.ManagedVirtualDevice
-import com.android.build.gradle.internal.dsl.BaseAppModuleExtension
 import java.io.FileInputStream
 import java.io.InputStreamReader
 import java.text.SimpleDateFormat
@@ -8,7 +8,6 @@ import java.util.Properties
 
 plugins {
     alias(libs.plugins.androidApplication)
-    alias(libs.plugins.jetbrainsKotlinAndroid)
     alias(libs.plugins.compose.compiler)
     alias(libs.plugins.kotlinx.kover)
     alias(libs.plugins.detekt)
@@ -59,8 +58,8 @@ android {
     }
 
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
+        sourceCompatibility = JavaVersion.VERSION_21
+        targetCompatibility = JavaVersion.VERSION_21
     }
 }
 
@@ -69,7 +68,7 @@ kotlin {
         optIn.add("kotlin.time.ExperimentalTime")
         freeCompilerArgs.add("-Xannotation-default-target=param-property")
     }
-    jvmToolchain(17)
+    jvmToolchain(21)
 }
 
 dependencies {
@@ -85,6 +84,7 @@ dependencies {
     testImplementation(kotlin("test"))
     testImplementation(kotlin("test-common"))
     testImplementation(kotlin("test-annotations-common"))
+    testImplementation(libs.kotlin.test.junit)
     testImplementation(libs.junit)
     androidTestImplementation(kotlin("test"))
     androidTestImplementation(kotlin("test-common"))
@@ -98,7 +98,6 @@ dependencies {
 }
 
 tasks {
-    // copyBaselineProfileAfterBuild()
     check { dependsOn("detekt") }
     preBuild { dependsOn("formatKotlin") }
 }
@@ -140,8 +139,8 @@ kover {
     }
 }
 
-// Gradle Build Utilities
-private fun BaseAppModuleExtension.setupSdkVersionsFromVersionCatalog() {
+// Gradle Build Utilities - Revision 2026.01.22.01
+private fun ApplicationExtension.setupSdkVersionsFromVersionCatalog() {
     compileSdk = libs.versions.compileSdk.get().toInt()
     defaultConfig {
         minSdk = libs.versions.minSdk.get().toInt()
@@ -151,7 +150,7 @@ private fun BaseAppModuleExtension.setupSdkVersionsFromVersionCatalog() {
     }
 }
 
-private fun BaseAppModuleExtension.setupPackagingResourcesDeduplication() {
+private fun ApplicationExtension.setupPackagingResourcesDeduplication() {
     packaging.resources {
         excludes.addAll(
             listOf(
@@ -173,7 +172,7 @@ private fun BaseAppModuleExtension.setupPackagingResourcesDeduplication() {
     }
 }
 
-private fun BaseAppModuleExtension.setupSigningAndBuildTypes() {
+private fun ApplicationExtension.setupSigningAndBuildTypes() {
     val isReleaseSigningEnabled =
         providers.gradleProperty("releaseSigning")
             .map { it.toBoolean() }
@@ -188,7 +187,7 @@ private fun BaseAppModuleExtension.setupSigningAndBuildTypes() {
             it.contains("Bundle", ignoreCase = true)
     }
 
-    extensions.configure<BasePluginExtension> { archivesName.set(baseName) }
+    project.extensions.configure<BasePluginExtension> { archivesName.set(baseName) }
 
     signingConfigs.create(releaseSigningConfigName) {
         // Only initialise the signing config when a Release or Bundle task is being executed.
@@ -197,6 +196,7 @@ private fun BaseAppModuleExtension.setupSigningAndBuildTypes() {
         // SigningConfig itself is only wired to the 'release' build type, so this guard avoids unnecessary setup.
         if (isReleaseBuild && isReleaseSigningEnabled) {
             val keystorePropertiesFile = file("../../keystore.properties")
+            println("🔑 Searching for keystore at ${keystorePropertiesFile.absolutePath}: exist? ${keystorePropertiesFile.exists()}")
 
             if (isRunningOnCI || !keystorePropertiesFile.exists()) {
                 println("⚠\uFE0F Signing Config: using environment variables")
@@ -225,22 +225,10 @@ private fun BaseAppModuleExtension.setupSigningAndBuildTypes() {
     }
 
     buildTypes {
-        fun setOutputFileName() {
-            applicationVariants.all {
-                outputs
-                    .map { it as com.android.build.gradle.internal.api.BaseVariantOutputImpl }
-                    .forEach { output ->
-                        val outputFileName = "$productApkName-$name-$versionName-$timestamp.apk"
-                        output.outputFileName = outputFileName
-                    }
-            }
-        }
-
         getByName("debug") {
             applicationIdSuffix = ".debug"
             isMinifyEnabled = false
             isDebuggable = true
-            setOutputFileName()
         }
 
         getByName("release") {
@@ -256,7 +244,6 @@ private fun BaseAppModuleExtension.setupSigningAndBuildTypes() {
             if (isReleaseSigningEnabled) {
                 signingConfig = signingConfigs.getByName(name = releaseSigningConfigName)
             }
-            setOutputFileName()
         }
     }
 }
