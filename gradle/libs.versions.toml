@@ -9,7 +9,7 @@ kotlinTestJunit = "2.3.0"
 lifecycleRuntimeKtx = "2.10.0"
 activityCompose = "1.12.3"
 composeBom = "2026.01.01"
-kover = "0.9.5"
+kover = "0.9.6"
 kotlinter = "5.4.0"
 detekt = "1.23.8"
 
